@@ -23,7 +23,7 @@ pipeline {
         stage('Build Sonar Scanner Image') {
             steps {
                 script {
-                    dir("${WORKSPACE}/sonar-scanner") {
+                    dir("${WORKSPACE}/sonar") {
                         sh "docker build -t ${env.dockerhubusername}/scanner:latest ."
                     }
                 }
