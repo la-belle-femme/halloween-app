@@ -32,7 +32,7 @@ pipeline {
         
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar') {
+                withSonarQubeEnv('SonarScanner') {
                     script {
                         docker.image("${env.dockerhubusername}/scanner:latest").inside('-u 0:0') {
                             sh 'sonar-scanner'
