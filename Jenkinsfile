@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     git branch: "${params.branch_name}", 
-                    credentialsId: 'github-dylan', 
+                    credentialsId: 'github-dylans', 
                     url: 'https://github.com/chrisdylan237/halloween-app.git'
                 }
             }
