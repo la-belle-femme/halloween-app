@@ -7,7 +7,6 @@ pipeline {
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'sonarcli', description: 'Enter the name for the Sonar CLI Docker image')
         booleanParam(name: 'RUN_STAGE', defaultValue: true, description: 'Set to true to run the stage')
         booleanParam(name: 'DELETE_APPLICATION', defaultValue: false, description: 'Set to true to delete the application container')
-        string(name: 'BUILD_NUMBER', defaultValue: '1', description: 'Enter the build number')
         string(name: 'HOST_PORT', defaultValue: '8080', description: 'Enter the host port to bind with container port')
         string(name: 'CONTAINER_NAME', defaultValue: 'halloween_container', description: 'Enter the name for the container')
     }
