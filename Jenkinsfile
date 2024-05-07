@@ -24,6 +24,7 @@ pipeline {
                     dir("${workspace}/sonar") {
                         // Run docker build command to build the Sonar CLI Docker image
                         sh "docker build -t ${params.DOCKER_HUB_USERNAME}/${params.DOCKER_IMAGE_NAME} ."
+                        sh "docker images | grep ${params.DOCKER_IMAGE_NAME}"
                     }
                 }
             }
