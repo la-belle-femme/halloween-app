@@ -4,7 +4,7 @@ FROM httpd
 RUN apt update -y 
 
 #variables
-ARG port=5433
+ARG port=80
 
 #creating volume
 VOLUME /saves
