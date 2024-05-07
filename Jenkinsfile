@@ -29,6 +29,15 @@ pipeline {
                 }
             }
         }
+        stage('Run Sonar Analysis with Docker') {
+            steps{
+                withSonarQubeEnv('SonarScanner'){
+                    script{
+                        docker.image("${params.DOCKER_HUB_USERNAME}/${params.DOCKER_IMAGE_NAME}")
+                        sh 'sonar-scanner'
+                    }
+                }
+            }
         // Add more stages for your pipeline as needed
     }
     // Add post-build actions if required
