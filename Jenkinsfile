@@ -57,5 +57,21 @@ pipeline {
                 }
             }
         }
+        
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    sh "docker push ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
+                }
+            }
+        }
+        
+        stage('Deploy Docker Image') {
+            steps {
+                script {
+                    sh "docker run -itd -p 5433:5433 ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
+                }
+            }
+        }
     }
 }
