@@ -41,5 +41,23 @@ pipeline {
                 }
             }
         }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${env.dockerhubusername}/halloween:${BUILD_NUMBER} ."
+                }
+            }
+        }
+        
+        stage('Login to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-dylan') {
+                        docker.login(credentialsId: 'dockerhub-dylan')
+                    }
+                }
+            }
+        }
     }
 }
