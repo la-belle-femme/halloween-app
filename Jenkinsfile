@@ -4,7 +4,7 @@ pipeline {
     parameters {
         booleanParam(name: 'run_stages', defaultValue: true, description: 'Set to true to run all stages')
         booleanParam(name: 'delete_application', defaultValue: false, description: 'Set to true to delete the application')
-        string(name: 'branch_name', defaultValue: 'master', description: 'Branch name to clone')
+        string(name: 'branch_name', defaultValue: 'main', description: 'Branch name to clone')
     }
     
     environment {
