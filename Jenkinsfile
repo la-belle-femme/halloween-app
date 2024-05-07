@@ -3,6 +3,7 @@ pipeline {
     
     environment {
         dockerhubusername = 'chrisdylan'
+        container_name = 'hallo'
     }
     
     parameters {
@@ -69,7 +70,8 @@ pipeline {
         stage('Deploy Docker Image') {
             steps {
                 script {
-                    sh "docker run -itd -p 5433:5433 ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
+                    sh "docker run -itd -p 8087:80 --name ${container_name} ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
+                    sh "docker ps"
                 }
             }
         }
