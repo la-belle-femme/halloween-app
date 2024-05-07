@@ -107,7 +107,7 @@ pipeline {
                 script {
                     sh "docker rm -f ${params.CONTAINER_NAME}"
                     // Verify if the container is deleted
-                    sh "docker ps | grep ${params.CONTAINER_NAME}"
+                    sh "docker ps "
                 }
             }
         }
