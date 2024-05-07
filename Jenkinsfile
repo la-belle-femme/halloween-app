@@ -1,17 +1,22 @@
 pipeline {
     agent any
     
+    parameters {
+        booleanParam(name: 'run_stages', defaultValue: true, description: 'Set to true to run all stages')
+        booleanParam(name: 'delete_application', defaultValue: false, description: 'Set to true to delete the application')
+        string(name: 'branch_name', defaultValue: 'master', description: 'Branch name to clone')
+    }
+    
     environment {
         dockerhubusername = 'chrisdylan'
         container_name = 'hallo'
     }
     
-    parameters {
-        string(name: 'branch_name', defaultValue: 'master', description: 'Branch name to clone')
-    }
-    
     stages {
         stage('Clone Repository') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 script {
                     git branch: "${params.branch_name}", 
@@ -22,6 +27,9 @@ pipeline {
         }
         
         stage('Build Sonar Scanner Image') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 script {
                     dir("${WORKSPACE}/sonar") {
@@ -32,6 +40,9 @@ pipeline {
         }
         
         stage('SonarQube Analysis') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 withSonarQubeEnv('SonarScanner') {
                     script {
@@ -44,6 +55,9 @@ pipeline {
         }
         
         stage('Build Docker Image') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 script {
                     sh "docker build -t ${env.dockerhubusername}/halloween:${BUILD_NUMBER} ."
@@ -52,6 +66,9 @@ pipeline {
         }
         
         stage('Login to DockerHub') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-dylan', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh "docker login -u ${USERNAME} -p ${PASSWORD}"
@@ -60,6 +77,9 @@ pipeline {
         }
         
         stage('Push Docker Image to DockerHub') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 script {
                     sh "docker push ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
@@ -68,10 +88,25 @@ pipeline {
         }
         
         stage('Deploy Docker Image') {
+            when {
+                expression { params.run_stages }
+            }
             steps {
                 script {
                     sh "docker run -itd -p 8087:80 --name ${container_name} ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
-                    sh "docker ps"
+                    sh "docker ps | grep ${container_name}"
+                }
+            }
+        }
+        
+        stage('Delete Application') {
+            when {
+                expression { params.run_stages && params.delete_application }
+            }
+            steps {
+                script {
+                    sh "docker rm ${container_name}"
+                    sh "docker ps | grep ${container_name}"
                 }
             }
         }
