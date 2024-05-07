@@ -5,7 +5,9 @@ pipeline {
         string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Enter the branch name to clone')
         string(name: 'DOCKER_HUB_USERNAME', defaultValue: 'chrisdylan', description: 'Enter your Docker Hub username')
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'sonarcli', description: 'Enter the name for the Sonar CLI Docker image')
-        
+        string(name: 'BUILD_NUMBER', defaultValue: '1', description: 'Enter the build number')
+        string(name: 'HOST_PORT', defaultValue: '8080', description: 'Enter the host port to bind with container port')
+        string(name: 'CONTAINER_NAME', defaultValue: 'halloween_container', description: 'Enter the name for the container')
     }
 
     stages {
@@ -55,6 +57,22 @@ pipeline {
                     usernameVariable: 'username', passwordVariable: 'password')]) {
                         sh "docker login -u $username -p $password"
                     }
+                }
+            }
+        }
+        
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    sh "docker push ${params.DOCKER_HUB_USERNAME}/halloween:${BUILD_NUMBER}"
+                }
+            }
+        }
+        
+        stage('Deploy Image') {
+            steps {
+                script {
+                    sh "docker run -itd -p ${params.HOST_PORT}:80 --name ${params.CONTAINER_NAME} ${params.DOCKER_HUB_USERNAME}/halloween:${BUILD_NUMBER}"
                 }
             }
         }
