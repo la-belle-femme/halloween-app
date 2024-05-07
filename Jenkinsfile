@@ -24,20 +24,26 @@ pipeline {
                     dir("${workspace}/sonar") {
                         // Run docker build command to build the Sonar CLI Docker image
                         sh "docker build -t ${params.DOCKER_HUB_USERNAME}/${params.DOCKER_IMAGE_NAME} ."
+                        // List Docker images matching the provided image name
                         sh "docker images | grep ${params.DOCKER_IMAGE_NAME}"
                     }
                 }
             }
         }
+        
         stage('Run Sonar Analysis with Docker') {
-            steps{
-                withSonarQubeEnv('SonarScanner'){
-                    script{
-                        docker.image("${params.DOCKER_HUB_USERNAME}/${params.DOCKER_IMAGE_NAME}")
-                        sh 'sonar-scanner'
+            steps {
+                script {
+                    // Use SonarQube environment with SonarScanner
+                    withSonarQubeEnv('SonarScanner') {
+                        // Run SonarScanner within the specified Docker container
+                        docker.image("${params.DOCKER_HUB_USERNAME}/${params.DOCKER_IMAGE_NAME}").inside {
+                            sh 'sonar-scanner'
+                        }
                     }
                 }
             }
+        }
         // Add more stages for your pipeline as needed
     }
     // Add post-build actions if required
