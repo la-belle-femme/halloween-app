@@ -105,7 +105,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "docker rm ${container_name}"
+                    sh "docker rm -f ${container_name}"
                     sh "docker ps | grep ${container_name}"
                 }
             }
