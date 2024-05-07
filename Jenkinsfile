@@ -113,26 +113,38 @@ pipeline {
     }
     
     post {
-        always {
-            script {
-                if (currentBuild.result == 'FAILURE') {
-                    if (params.run_stages) {
-                        sendSlackNotification("Pipeline execution failed!")
-                    }
-                } else {
-                    if (params.run_stages) {
-                        sendSlackNotification("Pipeline execution successful!")
-                    }
-                }
-            }
+        success {
+            slackSend color: '#2EB67D',
+            channel: 'dev-project', 
+            message: "halloween build status" +
+            "\n Project Name: halloween" +
+            "\n Job Name: ${env.JOB_NAME}" +
+            "\n Build number: ${currentBuild.displayName}" +
+            "\n Build Status : SUCCESS" +
+            "\n Build url : ${env.BUILD_URL}"
         }
-    }
-}
-
-def sendSlackNotification(message) {
-    withCredentials([string(credentialsId: 'slack-auth-token', variable: 'SLACK_TOKEN')]) {
-        sh """
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"$message"}' https://slack.com/api/chat.postMessage?token=${SLACK_TOKEN}&channel=dev-project
-        """
+        failure {
+            slackSend color: '#E01E5A',
+            channel: 'dev-project',  
+            message: "halloween build status" +
+            "\n Project Name: halloween" +
+            "\n Job Name: ${env.JOB_NAME}" +
+            "\n Build number: ${currentBuild.displayName}" +
+            "\n Build Status : FAILED" +
+            "\n Build User : dylan" +
+            "\n Action : Please check the console output to fix this job IMMEDIATELY" +
+            "\n Build url : ${env.BUILD_URL}"
+        }
+        unstable {
+            slackSend color: '#ECB22E',
+            channel: 'del-uk', 
+            message: "halloween build status" +
+            "\n Project Name: halloween" +
+            "\n Job Name: ${env.JOB_NAME}" +
+            "\n Build number: ${currentBuild.displayName}" +
+            "\n Build Status : UNSTABLE" +
+            "\n Action : Please check the console output to fix this job IMMEDIATELY" +
+            "\n Build url : ${env.BUILD_URL}"
+        }
     }
 }
