@@ -5,6 +5,7 @@ pipeline {
         string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Enter the branch name to clone')
         string(name: 'DOCKER_HUB_USERNAME', defaultValue: 'chrisdylan', description: 'Enter your Docker Hub username')
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'sonarcli', description: 'Enter the name for the Sonar CLI Docker image')
+        booleanParam(name: 'RUN_STAGE', defaultValue: true, description: 'Set to true to run the stage')
         string(name: 'BUILD_NUMBER', defaultValue: '1', description: 'Enter the build number')
         string(name: 'HOST_PORT', defaultValue: '8080', description: 'Enter the host port to bind with container port')
         string(name: 'CONTAINER_NAME', defaultValue: 'halloween_container', description: 'Enter the name for the container')
@@ -12,6 +13,9 @@ pipeline {
 
     stages {
         stage('Clone Repository') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     git branch: "${params.BRANCH_NAME}", credentialsId: 'catcup-token', url: 'https://github.com/chrisdylan237/halloween-app.git'
@@ -20,6 +24,9 @@ pipeline {
         }
         
         stage('Build Sonar CLI Docker Image') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     dir("${workspace}/sonar") {
@@ -31,6 +38,9 @@ pipeline {
         }
         
         stage('Run Sonar Analysis with Docker') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     withSonarQubeEnv('SonarScanner') {
@@ -43,6 +53,9 @@ pipeline {
         }
         
         stage('Build Application') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     sh "docker build -t ${params.DOCKER_HUB_USERNAME}/halloween:${BUILD_NUMBER} ."
@@ -51,6 +64,9 @@ pipeline {
         }
         
         stage('Login to DockerHub') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: "dockerhub-dylan", 
@@ -62,6 +78,9 @@ pipeline {
         }
         
         stage('Push to DockerHub') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     sh "docker push ${params.DOCKER_HUB_USERNAME}/halloween:${BUILD_NUMBER}"
@@ -70,6 +89,9 @@ pipeline {
         }
         
         stage('Deploy Image') {
+            when {
+                expression { params.RUN_STAGE }
+            }
             steps {
                 script {
                     sh "docker run -itd -p ${params.HOST_PORT}:80 --name ${params.CONTAINER_NAME} ${params.DOCKER_HUB_USERNAME}/halloween:${BUILD_NUMBER}"
