@@ -111,4 +111,28 @@ pipeline {
             }
         }
     }
+    
+    post {
+        always {
+            script {
+                if (currentBuild.result == 'FAILURE') {
+                    if (params.run_stages) {
+                        sendSlackNotification("Pipeline execution failed!")
+                    }
+                } else {
+                    if (params.run_stages) {
+                        sendSlackNotification("Pipeline execution successful!")
+                    }
+                }
+            }
+        }
+    }
+}
+
+def sendSlackNotification(message) {
+    withCredentials([string(credentialsId: 'slack-auth-token', variable: 'SLACK_TOKEN')]) {
+        sh """
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"$message"}' https://slack.com/api/chat.postMessage?token=${SLACK_TOKEN}&channel=dev-project
+        """
+    }
 }
