@@ -101,7 +101,7 @@ pipeline {
         
         stage('Delete Application') {
             when {
-                expression { params.run_stages && params.delete_application }
+                expression { params.delete_application }
             }
             steps {
                 script {
