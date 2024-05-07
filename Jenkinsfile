@@ -5,11 +5,12 @@ pipeline {
         booleanParam(name: 'run_stages', defaultValue: true, description: 'Set to true to run all stages')
         booleanParam(name: 'delete_application', defaultValue: false, description: 'Set to true to delete the application')
         string(name: 'branch_name', defaultValue: 'main', description: 'Branch name to clone')
+        string(name: 'container_name', defaultValue: 'hallo', description: 'Name of the Docker container')
+        string(name: 'host_port', defaultValue: '8087', description: 'Host port for Docker container')
     }
     
     environment {
         dockerhubusername = 'chrisdylan'
-        container_name = 'hallo'
     }
     
     stages {
@@ -93,8 +94,8 @@ pipeline {
             }
             steps {
                 script {
-                    sh "docker run -itd -p 8087:80 --name ${container_name} ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
-                    sh "docker ps | grep ${container_name}"
+                    sh "docker run -itd -p ${params.host_port}:80 --name ${params.container_name} ${env.dockerhubusername}/halloween:${BUILD_NUMBER}"
+                    sh "docker ps | grep ${params.container_name}"
                 }
             }
         }
@@ -105,8 +106,8 @@ pipeline {
             }
             steps {
                 script {
-                    sh "docker rm -f ${container_name}"
-                    sh "docker ps | grep ${container_name}"
+                    sh "docker rm -f ${params.container_name}"
+                    sh "docker ps | grep ${params.container_name}"
                 }
             }
         }
