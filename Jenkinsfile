@@ -19,7 +19,7 @@ pipeline {
         stage('Build SonarQube Scanner CLI Image') {
             steps {
                 script {
-                    dir('$WORKSPACE/sonar') {
+                    dir('${WORKSPACE}/sonar') {
                         sh "docker build -t ${params.DOCKERHUB_USERNAME}/sonar-scanner-cli:${BUILD_NUMBER} ."
                     }
                 }
