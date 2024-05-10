@@ -87,9 +87,6 @@ pipeline {
         }
 
         stage('Deploy Application') {
-            when {
-                expression { params.RUN_STAGES}
-            }
             steps {
                 script {
                     sh "docker run -itd -p ${params.HOST_PORT}:80 --name ${params.CONTAINER_NAME} ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
@@ -108,6 +105,15 @@ pipeline {
                     sh "docker rm ${params.CONTAINER_NAME}"
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            slackSend(channel: '#catchup', message: "Job '${env.JOB_NAME}' completed successfully!")
+        }
+        failure {
+            slackSend(channel: '#catchup', message: "Job '${env.JOB_NAME}' failed!")
         }
     }
 }
