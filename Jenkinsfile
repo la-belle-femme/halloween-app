@@ -2,8 +2,14 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git branch name')
-        string(name: 'DOCKERHUB_USERNAME', defaultValue: '', description: 'Docker Hub Username')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', 
+        description: 'Git branch name')
+        string(name: 'DOCKERHUB_USERNAME', defaultValue: '', 
+        description: 'Docker Hub Username')
+        string(name: 'HOST_PORT', defaultValue: '', 
+        description: 'ENTER THE Host Port')
+        string(name: 'CONTAINER_NAME', defaultValue: 'my-container', 
+        description: 'ENTER THE Container Name')
     }
 
     stages {
@@ -49,7 +55,7 @@ pipeline {
         stage('Login to DockerHub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 's8-test-docker-hub-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-dylan', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh "docker login -u ${USERNAME} -p ${PASSWORD}"
                     }
                 }
@@ -60,6 +66,15 @@ pipeline {
             steps {
                 script {
                     sh "docker push ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
+                }
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                script {
+                    sh "docker run -itd -p ${params.HOST_PORT}:80 --name ${params.CONTAINER_NAME} ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
+                    sh "docker ps | grep ${params.CONTAINER_NAME}"
                 }
             }
         }
