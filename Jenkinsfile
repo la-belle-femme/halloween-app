@@ -8,7 +8,7 @@ pipeline {
         string(name: 'CONTAINER_NAME', defaultValue: 'my-container', description: 'Container Name')
         booleanParam(name: 'RUN_STAGES', defaultValue: false, description: 'Run stages')
         booleanParam(name: 'DELETE_APPLICATION', defaultValue: false, description: 'Delete Application')
-        booleanParam(name: 'SKIP_STAGES', defaultValue: false, description: 'Skip stages')
+        booleanParam(name: 'SKIP_STAGES', defaultValue: false, description: 'Skip stages building and pushing image')
     }
 
     stages {
