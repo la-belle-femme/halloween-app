@@ -88,6 +88,9 @@ pipeline {
         }
 
         stage('Deploy Application') {
+            when {
+                expression {params.RUN_STAGES}
+            }
             steps {
                 script {
                     sh "docker run -itd -p ${params.HOST_PORT}:80 --name ${params.CONTAINER_NAME} ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
