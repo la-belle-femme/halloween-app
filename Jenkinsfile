@@ -45,5 +45,23 @@ pipeline {
                 }
             }
         }
+
+        stage('Login to DockerHub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-dylan', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh "docker login -u ${USERNAME} -p ${PASSWORD}"
+                    }
+                }
+            }
+        }
+
+        stage('Push Image to DockerHub') {
+            steps {
+                script {
+                    sh "docker push ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
+                }
+            }
+        }
     }
 }
