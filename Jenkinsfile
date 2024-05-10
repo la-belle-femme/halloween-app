@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'GIT_BRANCH', defaultValue: 'master', description: 'Git branch name')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git branch name')
         string(name: 'DOCKERHUB_USERNAME', defaultValue: '', description: 'Docker Hub Username')
     }
 
@@ -49,7 +49,7 @@ pipeline {
         stage('Login to DockerHub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-dylan', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: 's8-test-docker-hub-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh "docker login -u ${USERNAME} -p ${PASSWORD}"
                     }
                 }
