@@ -37,5 +37,13 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Application') {
+            steps {
+                script {
+                    sh "docker build -t ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER} ."
+                }
+            }
+        }
     }
 }
