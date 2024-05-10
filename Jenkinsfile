@@ -8,6 +8,7 @@ pipeline {
         string(name: 'CONTAINER_NAME', defaultValue: 'my-container', description: 'Container Name')
         booleanParam(name: 'RUN_STAGES', defaultValue: false, description: 'Run stages')
         booleanParam(name: 'DELETE_APPLICATION', defaultValue: false, description: 'Delete Application')
+        booleanParam(name: 'SKIP_STAGES', defaultValue: false, description: 'Skip stages')
     }
 
     stages {
@@ -53,11 +54,22 @@ pipeline {
 
         stage('Build Application') {
             when {
-                expression { params.RUN_STAGES }
+                expression { params.RUN_STAGES && !params.SKIP_STAGES }
             }
             steps {
                 script {
                     sh "docker build -t ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER} ."
+                }
+            }
+        }
+
+        stage('Push Image to DockerHub') {
+            when {
+                expression { params.RUN_STAGES && !params.SKIP_STAGES }
+            }
+            steps {
+                script {
+                    sh "docker push ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
                 }
             }
         }
@@ -71,17 +83,6 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-dylan', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh "docker login -u ${USERNAME} -p ${PASSWORD}"
                     }
-                }
-            }
-        }
-
-        stage('Push Image to DockerHub') {
-            when {
-                expression { params.RUN_STAGES }
-            }
-            steps {
-                script {
-                    sh "docker push ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
                 }
             }
         }
@@ -110,10 +111,10 @@ pipeline {
 
     post {
         success {
-            slackSend(channel: '#catchup', message: "Job '${env.JOB_NAME}' completed successfully!")
+            slackSend(channel: '#catchup-notify', message: "Job '${env.JOB_NAME}' completed successfully!")
         }
         failure {
-            slackSend(channel: '#catchup', message: "Job '${env.JOB_NAME}' failed!")
+            slackSend(channel: '#catchup-notify', message: "Job '${env.JOB_NAME}' failed!")
         }
     }
 }
