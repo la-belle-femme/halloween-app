@@ -2,18 +2,19 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'GIT_BRANCH', defaultValue: 'main', 
-        description: 'Git branch name')
-        string(name: 'DOCKERHUB_USERNAME', defaultValue: '', 
-        description: 'Docker Hub Username')
-        string(name: 'HOST_PORT', defaultValue: '', 
-        description: 'ENTER THE Host Port')
-        string(name: 'CONTAINER_NAME', defaultValue: 'my-container', 
-        description: 'ENTER THE Container Name')
+        string(name: 'GIT_BRANCH', defaultValue: 'master', description: 'Git branch name')
+        string(name: 'DOCKERHUB_USERNAME', defaultValue: '', description: 'Docker Hub Username')
+        string(name: 'HOST_PORT', defaultValue: '8080', description: 'Host Port')
+        string(name: 'CONTAINER_NAME', defaultValue: 'my-container', description: 'Container Name')
+        booleanParam(name: 'RUN_STAGES', defaultValue: false, description: 'Run stages')
+        booleanParam(name: 'DELETE_APPLICATION', defaultValue: false, description: 'Delete Application')
     }
 
     stages {
         stage('Clone Repository') {
+            when {
+                expression { params.RUN_STAGES }
+            }
             steps {
                 script {
                     git branch: "${params.GIT_BRANCH}", credentialsId: 'github-catchup', 
@@ -23,6 +24,9 @@ pipeline {
         }
 
         stage('Build SonarQube Scanner CLI Image') {
+            when {
+                expression { params.RUN_STAGES }
+            }
             steps {
                 script {
                     dir("${WORKSPACE}/sonar") {
@@ -33,6 +37,9 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            when {
+                expression { params.RUN_STAGES }
+            }
             steps {
                 script {
                     withSonarQubeEnv("SonarScanner") {
@@ -45,6 +52,9 @@ pipeline {
         }
 
         stage('Build Application') {
+            when {
+                expression { params.RUN_STAGES }
+            }
             steps {
                 script {
                     sh "docker build -t ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER} ."
@@ -53,6 +63,9 @@ pipeline {
         }
 
         stage('Login to DockerHub') {
+            when {
+                expression { params.RUN_STAGES }
+            }
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-dylan', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
@@ -63,6 +76,9 @@ pipeline {
         }
 
         stage('Push Image to DockerHub') {
+            when {
+                expression { params.RUN_STAGES }
+            }
             steps {
                 script {
                     sh "docker push ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
@@ -75,6 +91,18 @@ pipeline {
                 script {
                     sh "docker run -itd -p ${params.HOST_PORT}:80 --name ${params.CONTAINER_NAME} ${params.DOCKERHUB_USERNAME}/catchup:${BUILD_NUMBER}"
                     sh "docker ps | grep ${params.CONTAINER_NAME}"
+                }
+            }
+        }
+
+        stage('Delete Application') {
+            when {
+                expression { params.DELETE_APPLICATION }
+            }
+            steps {
+                script {
+                    sh "docker stop ${params.CONTAINER_NAME}"
+                    sh "docker rm ${params.CONTAINER_NAME}"
                 }
             }
         }
