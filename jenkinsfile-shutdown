@@ -1,0 +1,74 @@
+pipeline { 
+    agent any
+
+    parameters {
+        string(name: "DOCKERHUB_USERNAME", defaultValue: "", description: "Enter your DockerHub username")   // Your DockerHub username
+        string(name: "DOCKERHUB_REPO", defaultValue: "", description: "Enter your DockerHub repository name") // Your DockerHub repository name
+        string(name: "IMAGE_TAG", defaultValue: "latest", description: "Enter your image tag") // Your image tag
+        choice(name: "git_branch", choices: ["feature", "main", "staging", "preprod", "prod"], description: "Select your branch")
+        string(name: "git_url", defaultValue: "", description: "Enter your Git repository URL")
+        booleanParam(name: "SHUTDOWN_APP", defaultValue: false, description: "Set to true to shut down the application")
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Correcting the syntax for git checkout
+                git branch: "${params.git_branch}", url: "${params.git_url}"
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                docker build -t ${params.DOCKERHUB_USERNAME}/${params.DOCKERHUB_REPO}:${params.IMAGE_TAG} .
+                """
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'your-dockerhub-credentials-id', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    """
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                sh """
+                docker push ${params.DOCKERHUB_USERNAME}/${params.DOCKERHUB_REPO}:${params.IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                sh """
+                # Example deployment command, adjust this to your needs
+                kubectl apply -f deployment.yaml
+                """
+            }
+        }
+
+        stage('Shutdown Application') {
+            when {
+                expression { params.SHUTDOWN_APP == true }
+            }
+            steps {
+                sh """
+                # Example shutdown command, adjust this to your needs
+                kubectl delete -f deployment.yaml
+                """
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout'
+        }
+    }
+}
